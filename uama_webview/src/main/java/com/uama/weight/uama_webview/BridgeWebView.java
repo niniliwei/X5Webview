@@ -40,17 +40,17 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge {
 
 	public BridgeWebView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init();
+		init(context);
 	}
 
 	public BridgeWebView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		init();
+		init(context);
 	}
 
 	public BridgeWebView(Context context) {
 		super(context);
-		init();
+		init(context);
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge {
        this.defaultHandler = handler;
 	}
 
-    private void init() {
+    private void init(Context context) {
 		this.setVerticalScrollBarEnabled(false);
 		this.setHorizontalScrollBarEnabled(false);
 		this.getSettings().setJavaScriptEnabled(true);
@@ -74,11 +74,11 @@ public class BridgeWebView extends WebView implements WebViewJavascriptBridge {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			this.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 		}
-		this.setWebViewClient(generateBridgeWebViewClient());
+		this.setWebViewClient(generateBridgeWebViewClient(context));
 	}
 
-    protected BridgeWebViewClient generateBridgeWebViewClient() {
-        return new BridgeWebViewClient(this);
+    protected BridgeWebViewClient generateBridgeWebViewClient(Context context) {
+        return new BridgeWebViewClient(context,this);
     }
 
 	void handlerReturnData(String url) {

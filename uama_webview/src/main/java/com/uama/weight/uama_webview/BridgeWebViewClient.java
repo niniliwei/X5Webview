@@ -1,7 +1,13 @@
 package com.uama.weight.uama_webview;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.support.v7.app.AlertDialog;
 
+import com.tencent.smtt.export.external.interfaces.WebResourceError;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
@@ -13,9 +19,12 @@ import java.net.URLDecoder;
  */
 public class BridgeWebViewClient extends WebViewClient {
     private BridgeWebView webView;
+    private Context context;
+    public WebClientListener listener;
 
-    public BridgeWebViewClient(BridgeWebView webView) {
+    public BridgeWebViewClient(Context context,BridgeWebView webView) {
         this.webView = webView;
+        this.context = context;
     }
 
     @Override
@@ -25,15 +34,29 @@ public class BridgeWebViewClient extends WebViewClient {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-
-        if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
-            webView.handlerReturnData(url);
-            return true;
-        } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) { //
-            webView.flushMessageQueue();
+        if (url.contains("tel:")) {
+            showDialogs(url);
             return true;
         } else {
-            return super.shouldOverrideUrlLoading(view, url);
+            if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
+                webView.handlerReturnData(url);
+                return true;
+            } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) { //
+                webView.flushMessageQueue();
+                return true;
+            }else if (url.startsWith("http:") || url.startsWith("https:")) {
+                webView.loadUrl(url);
+                return false;
+            } else {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    context.startActivity(intent);
+                } catch (Exception e) {
+                    // 防止没有安装应用
+                    e.printStackTrace();
+                }
+                return true;
+            }
         }
     }
 
@@ -57,10 +80,60 @@ public class BridgeWebViewClient extends WebViewClient {
             }
             webView.setStartupMessage(null);
         }
+        if (listener != null) {
+            listener.pageLoadFinished();
+        }
     }
 
     @Override
-    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-        super.onReceivedError(view, errorCode, description, failingUrl);
+    public void onReceivedError(WebView webView, com.tencent.smtt.export.external.interfaces.WebResourceRequest webResourceRequest, WebResourceError webResourceError) {
+        super.onReceivedError(webView, webResourceRequest, webResourceError);
+        if (listener != null) {
+            listener.setLoadFail();
+        }
+    }
+    /**
+     * 点击webview电话连接打电话
+     *
+     * @param url 超链接
+     */
+    private void showDialogs(final String url) {
+        String telNum = url.substring(url.indexOf(":", 1), url.length());
+        new AlertDialog.Builder(context)
+                .setTitle("提示")
+                .setMessage("确认拨打 " + telNum)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            Uri uri = Uri.parse(url);
+                            Intent it = new Intent(Intent.ACTION_CALL, uri);
+                            context.startActivity(it);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).create().show();
+    }
+    public interface WebClientListener {
+        void setLoadFail();
+
+        void pageLoadFinished();
+    }
+
+    public void registWebClientListener(WebClientListener listener) {
+        removeWebClientListener();
+        this.listener = listener;
+    }
+
+    public void removeWebClientListener() {
+        if (listener != null) {
+            listener = null;
+        }
     }
 }
