@@ -64,7 +64,7 @@ public class BridgeWebViewClient extends WebViewClient {
 
                 if (imgUrl != null && imgUrl.length > 0) {
                     List<String> list = Arrays.asList(imgUrl);
-                    listener.imageClick(list,index);
+                    listener.webviewImageClick(list,index);
                 }
                 return true;
             }else {
@@ -157,7 +157,7 @@ public class BridgeWebViewClient extends WebViewClient {
 
         void pageLoadFinished();
 
-        void imageClick(List<String> imgs, int position);
+        void webviewImageClick(List<String> imgs, int position);
     }
 
     public void registWebClientListener(WebClientListener listener) {

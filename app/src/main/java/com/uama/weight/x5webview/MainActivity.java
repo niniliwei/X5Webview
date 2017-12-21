@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements BridgeWebViewClie
     }
 
     @Override
-    public void imageClick(List<String> imgs, int position) {
+    public void webviewImageClick(List<String> imgs, int position) {
         //图片点击
         Toast.makeText(this,imgs.get(position),Toast.LENGTH_LONG).show();
     }
