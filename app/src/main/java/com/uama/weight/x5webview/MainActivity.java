@@ -10,6 +10,8 @@ import com.uama.weight.uama_webview.BridgeWebView;
 import com.uama.weight.uama_webview.BridgeWebViewClient;
 import com.uama.weight.uama_webview.CallBackFunction;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements BridgeWebViewClient.WebClientListener{
 
     @Override
@@ -21,7 +23,6 @@ public class MainActivity extends AppCompatActivity implements BridgeWebViewClie
         webViewClient.registWebClientListener(this);
         webView.setWebViewClient(webViewClient);
         webView.loadUrl("https://www.bejson.com/");
-        webView.addJavascriptInterface(new JavascriptInterface(MainActivity.this), "imagelistner");
         // 注册桥方法
         webView.registerHandler("_app_home_h5_card", new BridgeHandler() {
             @Override
@@ -33,11 +34,17 @@ public class MainActivity extends AppCompatActivity implements BridgeWebViewClie
 
     @Override
     public void setLoadFail() {
-        Toast.makeText(this,"我是失败",Toast.LENGTH_LONG).show();
+//        Toast.makeText(this,"我是失败",Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void pageLoadFinished() {
-        Toast.makeText(this,"我是结束",Toast.LENGTH_LONG).show();
+//        Toast.makeText(this,"我是结束",Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void imageClick(List<String> imgs, int position) {
+        //图片点击
+        Toast.makeText(this,imgs.get(position),Toast.LENGTH_LONG).show();
     }
 }

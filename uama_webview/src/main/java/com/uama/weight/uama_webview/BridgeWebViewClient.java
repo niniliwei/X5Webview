@@ -13,6 +13,9 @@ import com.tencent.smtt.sdk.WebViewClient;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by bruce on 10/28/15.
@@ -22,7 +25,7 @@ public class BridgeWebViewClient extends WebViewClient {
     private Context context;
     public WebClientListener listener;
 
-    public BridgeWebViewClient(Context context,BridgeWebView webView) {
+    public BridgeWebViewClient(Context context, BridgeWebView webView) {
         this.webView = webView;
         this.context = context;
     }
@@ -37,14 +40,41 @@ public class BridgeWebViewClient extends WebViewClient {
         if (url.contains("tel:")) {
             showDialogs(url);
             return true;
-        } else {
+        } else if (url != null && url.contains("image://?")) {
+            // 点击图片查看大图
+                String temp = url.replace("image://?", "");
+                String[] params = temp.split("&");
+
+                // 图片集
+                String[] imgUrl = null;
+                int index = 0;
+                for (String param : params) {
+                    if (param.contains("url=")) {
+                        param = param.replace("url=", "");
+                        imgUrl = param.split(",");
+                    } else if (param.contains("currentIndex=")) {
+                        param = param.replace("currentIndex=", "");
+                        try {
+                            index = Integer.parseInt(param);
+                        } catch (NumberFormatException e) {
+                            index = 0;
+                        }
+                    }
+                }
+
+                if (imgUrl != null && imgUrl.length > 0) {
+                    List<String> list = Arrays.asList(imgUrl);
+                    listener.imageClick(list,index);
+                }
+                return true;
+            }else {
             if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
                 webView.handlerReturnData(url);
                 return true;
             } else if (url.startsWith(BridgeUtil.YY_OVERRIDE_SCHEMA)) { //
                 webView.flushMessageQueue();
                 return true;
-            }else if (url.startsWith("http:") || url.startsWith("https:")) {
+            } else if (url.startsWith("http:") || url.startsWith("https:")) {
                 webView.loadUrl(url);
                 return false;
             } else {
@@ -92,6 +122,7 @@ public class BridgeWebViewClient extends WebViewClient {
             listener.setLoadFail();
         }
     }
+
     /**
      * 点击webview电话连接打电话
      *
@@ -109,7 +140,7 @@ public class BridgeWebViewClient extends WebViewClient {
                             Uri uri = Uri.parse(url);
                             Intent it = new Intent(Intent.ACTION_CALL, uri);
                             context.startActivity(it);
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -120,10 +151,13 @@ public class BridgeWebViewClient extends WebViewClient {
             }
         }).create().show();
     }
+
     public interface WebClientListener {
         void setLoadFail();
 
         void pageLoadFinished();
+
+        void imageClick(List<String> imgs, int position);
     }
 
     public void registWebClientListener(WebClientListener listener) {
