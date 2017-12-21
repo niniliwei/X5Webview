@@ -2,10 +2,13 @@ package com.uama.weight.x5webview;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.uama.weight.uama_webview.BridgeHandler;
 import com.uama.weight.uama_webview.BridgeWebView;
 import com.uama.weight.uama_webview.BridgeWebViewClient;
+import com.uama.weight.uama_webview.CallBackFunction;
 
 public class MainActivity extends AppCompatActivity implements BridgeWebViewClient.WebClientListener{
 
@@ -17,7 +20,15 @@ public class MainActivity extends AppCompatActivity implements BridgeWebViewClie
         BridgeWebViewClient webViewClient =   new BridgeWebViewClient(this, webView);
         webViewClient.registWebClientListener(this);
         webView.setWebViewClient(webViewClient);
-        webView.loadUrl("http://go.tujia.com/4091?code=ymexc2asPgxZKwaPevSCKgkT7iscN14qhXELcGSLiuPfhdxxv1JvgcroSSRqlt9UmSdx6zzb%2BdyidTXErrDYkjGxcaP1fYyHlYUCU6XPvEisoycLeZnqlbkCYgtndqR9DNAzd9jcijHxK6m7%2FA5gmIUpxnMdpy2ftCco%2B4CpV09Pkuehq9687A%3D%3D");
+        webView.loadUrl("https://www.bejson.com/");
+        webView.addJavascriptInterface(new JavascriptInterface(MainActivity.this), "imagelistner");
+        // 注册桥方法
+        webView.registerHandler("_app_home_h5_card", new BridgeHandler() {
+            @Override
+            public void handler(String data, CallBackFunction function) {
+                    Log.i("heerzhen", data);
+            }
+        });
     }
 
     @Override
