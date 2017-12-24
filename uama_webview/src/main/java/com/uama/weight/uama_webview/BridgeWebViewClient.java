@@ -1,17 +1,20 @@
 package com.uama.weight.uama_webview;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.v7.app.AlertDialog;
+import android.widget.Toast;
 
 import com.tencent.smtt.export.external.interfaces.WebResourceError;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,32 +45,44 @@ public class BridgeWebViewClient extends WebViewClient {
             return true;
         } else if (url != null && url.contains("image://?")) {
             // 点击图片查看大图
-                String temp = url.replace("image://?", "");
-                String[] params = temp.split("&");
+            String temp = url.replace("image://?", "");
+            String[] params = temp.split("&");
 
-                // 图片集
-                String[] imgUrl = null;
-                int index = 0;
-                for (String param : params) {
-                    if (param.contains("url=")) {
-                        param = param.replace("url=", "");
-                        imgUrl = param.split(",");
-                    } else if (param.contains("currentIndex=")) {
-                        param = param.replace("currentIndex=", "");
-                        try {
-                            index = Integer.parseInt(param);
-                        } catch (NumberFormatException e) {
-                            index = 0;
-                        }
+            // 图片集
+            String[] imgUrl = null;
+            int index = 0;
+            for (String param : params) {
+                if (param.contains("url=")) {
+                    param = param.replace("url=", "");
+                    imgUrl = param.split(",");
+                } else if (param.contains("currentIndex=")) {
+                    param = param.replace("currentIndex=", "");
+                    try {
+                        index = Integer.parseInt(param);
+                    } catch (NumberFormatException e) {
+                        index = 0;
                     }
                 }
+            }
 
-                if (imgUrl != null && imgUrl.length > 0) {
-                    List<String> list = Arrays.asList(imgUrl);
-                    listener.webviewImageClick(list,index);
-                }
+            if (imgUrl != null && imgUrl.length > 0) {
+                List<String> list = Arrays.asList(imgUrl);
+                listener.webviewImageClick(list, index);
+            }
+            return true;
+        } else if (url.startsWith("alipays://platformapi/startapp") || url.startsWith("alipays://platformapi/startApp")) {
+            // 截取网页打开客户端的链接，转换成 Intent 直接打开支付宝 APP
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                context.startActivity(intent);
                 return true;
-            }else {
+            } catch (ActivityNotFoundException e) {
+                // 如果 url 解析失败或者没有安装支付宝 APP，会抛出异常
+                Toast.makeText(context, "您还未安装支付宝客户端，请安装后重试", Toast.LENGTH_LONG).show();
+                e.printStackTrace();
+                return true;
+            }
+        } else {
             if (url.startsWith(BridgeUtil.YY_RETURN_DATA)) { // 如果是返回数据
                 webView.handlerReturnData(url);
                 return true;

@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements BridgeWebViewClie
         BridgeWebViewClient webViewClient =   new BridgeWebViewClient(this, webView);
         webViewClient.registWebClientListener(this);
         webView.setWebViewClient(webViewClient);
-        webView.loadUrl("https://www.bejson.com/");
+        webView.loadUrl("http://api.4001113900.com:6080/h5/lc/community/service/lifePayment.html");
         // 注册桥方法
         webView.registerHandler("_app_home_h5_card", new BridgeHandler() {
             @Override
